@@ -1,5 +1,6 @@
 package com.rump.klips2gradenews;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,13 +18,14 @@ import org.apache.logging.log4j.Logger;
 public class Klips2GradeNews {
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final Logger logger = LogManager.getLogger();
-  private static final WebScraper scraper = new WebScraper();
+  private WebScraper scraper;
 
   public static void main(String[] args) {
     System.setProperty("webdriver.gecko.driver", "src/main/resources/geckodriver");
     Klips2GradeNews gradeNews = new Klips2GradeNews();
-    if (gradeNews.parseArgs(args)) {
-      scraper.init();
+    Optional<CommandLine> line = gradeNews.parseArgs(args);
+    if (line.isPresent()) {
+      gradeNews.initWebScraper(line.get());
       gradeNews.start();
     }
   }
@@ -38,7 +40,7 @@ public class Klips2GradeNews {
       try {
         check();
       } catch (Exception e) {
-        logger.error("Problem in check routine, perhaps Klips2 has been changed\nStacktrace:\n", e);
+        logger.error("problem in check routine, perhaps Klips2 has been changed", e);
       }
     };
 
@@ -83,28 +85,28 @@ public class Klips2GradeNews {
     return options;
   }
 
-  private boolean parseArgs(String[] args) {
+  private Optional<CommandLine> parseArgs(String[] args) {
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
     Options options = getOptions();
     try {
       CommandLine line = parser.parse(options, args);
-      scraper.setCredentials(line.getOptionValue("u"), line.getOptionValue("p"));
-      MailService mailService = new MailService();
-      mailService.setEmailAddress(line.getOptionValue("ea"));
-      mailService.setPassword(line.getOptionValue("ep"));
-      mailService.setUsername(line.getOptionValue("eu"));
-      mailService.setSSLOnConnect(line.hasOption("ssl"));
-      mailService.setsmtpPort(Integer.parseInt(line.getOptionValue("sp")));
-      mailService.setHostName(line.getOptionValue("ehn"));
-      scraper.setMailService(mailService);
-      return true;
+      return Optional.of(line);
 
     } catch (ParseException e) {
       formatter.printHelp("Klips2GradeNews",
           "Sends automatically an email if you have new grades in Klips2", options,
           "Please report issues to dennis_rump@gmx.de", true);
-      return false;
+      return Optional.empty();
     }
+  }
+
+  private void initWebScraper(CommandLine line) {
+    MailService mailService = new MailService(line.getOptionValue("eu"), line.getOptionValue("ep"),
+        line.getOptionValue("u"), line.getOptionValue("ea"),
+        Integer.parseInt(line.getOptionValue("sp")), line.hasOption("ssl"),
+        line.getOptionValue("ehn"));
+
+    scraper = new WebScraper(mailService, line.getOptionValue("u"), line.getOptionValue("p"));
   }
 }

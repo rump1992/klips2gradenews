@@ -1,5 +1,7 @@
 package com.rump.klips2gradenews;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,13 +24,22 @@ public class WebScraper {
   private int numberOfTestResultsTableCells;
   private IMailService mailService;
 
-  @SuppressWarnings("unchecked")
+  public WebScraper(IMailService mailService, String username, String password) {
+    this.mailService = checkNotNull(mailService);
+    this.username = checkNotNull(username);
+    this.password = checkNotNull(password);
+
+    numberOfTestResultsTableCells = getTestResultsTableCellsSize();
+    logger.debug("webscraper initialized");
+  }
+
   public void checkForNewTestResults() {
     int numberOfCells = getTestResultsTableCellsSize();
 
     if (numberOfCells > numberOfTestResultsTableCells) {
-      mailService.sendInfoMail(username);
+      mailService.sendInfoMail();
       numberOfTestResultsTableCells = numberOfCells;
+      logger.info("there are new exam results");
       logger.info("number of table cells updated");
       return;
     }
@@ -100,18 +111,5 @@ public class WebScraper {
     driver.quit();
 
     return numberOfCells;
-  }
-
-  public void setCredentials(String username, String password) {
-    this.username = username;
-    this.password = password;
-  }
-
-  public void setMailService(IMailService mailService) {
-    this.mailService = mailService;
-  }
-
-  public void init() {
-    numberOfTestResultsTableCells = getTestResultsTableCellsSize();
   }
 }
