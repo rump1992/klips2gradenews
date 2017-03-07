@@ -22,10 +22,8 @@ public class WebScraper {
   private String username;
   private String password;
   private int numberOfTestResultsTableCells;
-  private IMailService mailService;
 
-  public WebScraper(IMailService mailService, String username, String password) {
-    this.mailService = checkNotNull(mailService);
+  public WebScraper(String username, String password) {
     this.username = checkNotNull(username);
     this.password = checkNotNull(password);
 
@@ -33,17 +31,17 @@ public class WebScraper {
     logger.debug("webscraper initialized");
   }
 
-  public void checkForNewTestResults() {
+  public boolean hasKlips2NewExamResults() {
     int numberOfCells = getTestResultsTableCellsSize();
 
     if (numberOfCells > numberOfTestResultsTableCells) {
-      mailService.sendInfoMail();
       numberOfTestResultsTableCells = numberOfCells;
       logger.info("there are new exam results");
       logger.info("number of table cells updated");
-      return;
+      return true;
     }
     logger.info("no new exam results");
+    return false;
   }
 
   private int getTestResultsTableCellsSize() {

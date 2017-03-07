@@ -19,20 +19,28 @@ public class Klips2GradeNews {
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final Logger logger = LogManager.getLogger();
   private WebScraper scraper;
+  private IMailService mailService;
 
   public static void main(String[] args) {
     System.setProperty("webdriver.gecko.driver", "src/main/resources/geckodriver");
-    Klips2GradeNews gradeNews = new Klips2GradeNews();
-    Optional<CommandLine> line = gradeNews.parseArgs(args);
+
+    Optional<CommandLine> line = parseArgs(args);
     if (line.isPresent()) {
-      gradeNews.initWebScraper(line.get());
+      IMailService mailService = initMailService(line.get());
+      WebScraper webScraper = initWebScraper(line.get());
+      Klips2GradeNews gradeNews = new Klips2GradeNews(webScraper, mailService);
       gradeNews.start();
     }
   }
 
+  public Klips2GradeNews(WebScraper scraper, IMailService mailService) {
+    this.scraper = scraper;
+  }
+
   private void check() {
     logger.debug("webscraper starts checking for new exam results");
-    scraper.checkForNewTestResults();
+    if (scraper.hasKlips2NewExamResults())
+      mailService.sendInfoMail();
   }
 
   private void start() {
@@ -48,7 +56,7 @@ public class Klips2GradeNews {
     logger.debug("check routine started");
   }
 
-  private Options getOptions() {
+  private static Options getOptions() {
     Option SSLOnConnect =
         new Option("ssl", "SSLOnConnect", false, "SSL is used when connecting to SMTP server");
 
@@ -85,7 +93,7 @@ public class Klips2GradeNews {
     return options;
   }
 
-  private Optional<CommandLine> parseArgs(String[] args) {
+  private static Optional<CommandLine> parseArgs(String[] args) {
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
     Options options = getOptions();
@@ -101,12 +109,17 @@ public class Klips2GradeNews {
     }
   }
 
-  private void initWebScraper(CommandLine line) {
+  private static IMailService initMailService(CommandLine line) {
     MailService mailService = new MailService(line.getOptionValue("eu"), line.getOptionValue("ep"),
         line.getOptionValue("u"), line.getOptionValue("ea"),
         Integer.parseInt(line.getOptionValue("sp")), line.hasOption("ssl"),
         line.getOptionValue("ehn"));
 
-    scraper = new WebScraper(mailService, line.getOptionValue("u"), line.getOptionValue("p"));
+    return mailService;
+  }
+
+  private static WebScraper initWebScraper(CommandLine line) {
+    WebScraper scraper = new WebScraper(line.getOptionValue("u"), line.getOptionValue("p"));
+    return scraper;
   }
 }
