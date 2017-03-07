@@ -1,13 +1,9 @@
 package com.rump.klips2gradenews;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -19,13 +15,31 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class WebScraper {
-
+  Logger logger = LogManager.getLogger();
   private final String URL = "https://klips2.uni-koeln.de/co/webnav.ini";
+  private String username;
+  private String password;
+  private int numberOfTestResultsTableCells;
+  private IMailService mailService;
 
   @SuppressWarnings("unchecked")
-  public void checkForNewTestResults(String username, String password) {
+  public void checkForNewTestResults() {
+    int numberOfCells = getTestResultsTableCellsSize();
+
+    if (numberOfCells > numberOfTestResultsTableCells) {
+      mailService.sendInfoMail(username);
+      numberOfTestResultsTableCells = numberOfCells;
+      logger.info("number of table cells updated");
+      return;
+    }
+    logger.info("no new exam results");
+  }
+
+  private int getTestResultsTableCellsSize() {
+    FirefoxProfile profile = new FirefoxProfile();
     DesiredCapabilities caps =
-        new FirefoxOptions().setProfile(new FirefoxProfile()).addTo(DesiredCapabilities.firefox());
+        new FirefoxOptions().setProfile(profile).addTo(DesiredCapabilities.firefox());
+
     WebDriver driver = new FirefoxDriver(caps);
     driver.get(URL);
     driver.switchTo().frame(driver.findElement(By.name("menue")));
@@ -82,31 +96,22 @@ public class WebScraper {
     List<WebElement> listTables = driver.findElements(By.className("list"));
     WebElement testResultsTable = listTables.get(listTables.size() - 1);
     List<WebElement> tableCells = testResultsTable.findElements(By.tagName("TD"));
-    if (tableCells.size() == 1) {
-      if (tableCells.get(0).getText().equals("Keine Teilbeurteilungen vorhanden"))
-        return;
-    }
+    int numberOfCells = tableCells.size();
+    driver.quit();
 
-    JSONParser parser = new JSONParser();
+    return numberOfCells;
+  }
 
-    try {
-      Object object = parser.parse(new FileReader("storage.json"));
-      JSONObject jsonObject = (JSONObject) object;
-      Integer numberOfCells = (Integer) jsonObject.get("NumberOfCells");
-      if (tableCells.size() > numberOfCells) {
-        (new MailService()).sendInfoMail(username);
-        jsonObject.put("NumberOfCells", tableCells.size());
-        try (FileWriter file = new FileWriter("storage.json")) {
-          file.write(jsonObject.toJSONString());
-          file.flush();
-        } catch (IOException e) {
-          // TODO:Logging
-        }
-      }
-    } catch (IOException | ParseException ex) {
-      // TODO: logging
-    }
+  public void setCredentials(String username, String password) {
+    this.username = username;
+    this.password = password;
+  }
 
+  public void setMailService(IMailService mailService) {
+    this.mailService = mailService;
+  }
 
+  public void init() {
+    numberOfTestResultsTableCells = getTestResultsTableCellsSize();
   }
 }
