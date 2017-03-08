@@ -54,7 +54,7 @@ public class WebScraper {
     driver.switchTo().frame(driver.findElement(By.name("menue")));
     WebElement login = driver.findElement(By.id("menue_frame_key_icon"));
     login.click();
-    (new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
+    (new WebDriverWait(driver, 60)).until(new ExpectedCondition<Boolean>() {
 
       @Override
       public Boolean apply(WebDriver d) {
@@ -69,7 +69,7 @@ public class WebScraper {
     passwordInput.sendKeys(password);
     WebElement loginButton = driver.findElement(By.name("pAction"));
     loginButton.click();
-    (new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
+    (new WebDriverWait(driver, 60)).until(new ExpectedCondition<Boolean>() {
 
       @Override
       public Boolean apply(WebDriver d) {
@@ -83,7 +83,7 @@ public class WebScraper {
       ff.click();
     }
 
-    (new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
+    (new WebDriverWait(driver, 60)).until(new ExpectedCondition<Boolean>() {
 
       @Override
       public Boolean apply(WebDriver d) {
@@ -94,7 +94,7 @@ public class WebScraper {
     WebElement testResultsLink = driver.findElement(By.linkText("Prüfungsergebnisse"));
     testResultsLink.click();
 
-    (new WebDriverWait(driver, 5)).until(new ExpectedCondition<Boolean>() {
+    (new WebDriverWait(driver, 60)).until(new ExpectedCondition<Boolean>() {
 
       @Override
       public Boolean apply(WebDriver d) {

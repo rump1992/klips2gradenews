@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
-        </Console>
-        <File name="File" fileName="logfile.log" immediateFlush="true" append="false">
-            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </File>
-    </Appenders>
-    <Loggers>
-        <Root level="debug">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="File"/>
-        </Root>
-    </Loggers>
+<Configuration status="WARN">
+ <Properties>
+  <Property name="log-path">logs</Property>
+ </Properties>
+ <Appenders>
+  <RollingFile name="RollingFile" fileName="${log-path}/logfile.log" filePattern="${log-path}/logfile-%d{yyyy-MM-dd}-%i.log">
+   <PatternLayout pattern="%d{dd. MM yyyy HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+   <Policies>
+    <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+   </Policies>
+  </RollingFile>
+  <Console name="Console" target="SYSTEM_OUT">
+   <PatternLayout pattern="%d{dd.MM.yyyy HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+  </Console>
+ </Appenders>
+ <Loggers>
+  <Logger name="com.rump.klips2gradenews" level="debug" additivity="false">
+   <AppenderRef ref="RollingFile" />
+   <AppenderRef ref="Console" />
+  </Logger>
+  <Root level="error">
+   <AppenderRef ref="RollingFile" />
+   <AppenderRef ref="Console" />
+  </Root>
+ </Loggers>
 </Configuration>
+
