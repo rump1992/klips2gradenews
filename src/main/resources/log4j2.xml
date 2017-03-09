@@ -4,11 +4,12 @@
   <Property name="log-path">logs</Property>
  </Properties>
  <Appenders>
-  <RollingFile name="RollingFile" fileName="${log-path}/logfile.log" filePattern="${log-path}/logfile-%d{yyyy-MM-dd}-%i.log">
+  <RollingFile name="RollingFile" fileName="${log-path}/logfile.log" filePattern="${log-path}/logfile-%d{yyyy-MM-dd}.log">
    <PatternLayout pattern="%d{dd. MM yyyy HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
    <Policies>
     <TimeBasedTriggeringPolicy interval="1" modulate="true" />
    </Policies>
+   <DefaultRolloverStrategy max="5"/>
   </RollingFile>
   <Console name="Console" target="SYSTEM_OUT">
    <PatternLayout pattern="%d{dd.MM.yyyy HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />

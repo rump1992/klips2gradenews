@@ -37,7 +37,7 @@ public class MailService implements IMailService {
     email.setAuthenticator(new DefaultAuthenticator(emailUsername, emailPassword));
     email.setSSLOnConnect(SSLOnConnect);
     try {
-      email.setFrom(emailAddress);
+      email.setFrom(emailAddress, "Klips2GradeNews");
     } catch (EmailException e) {
       logger.error("invalid email address", e);
     }
