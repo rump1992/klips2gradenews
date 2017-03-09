@@ -14,10 +14,14 @@ public class Checker {
   private final Logger logger = LogManager.getLogger();
   private WebScraper scraper;
   private IMailService mailService;
+  private long period;
+  private TimeUnit unit;
 
-  public Checker(WebScraper scraper, IMailService mailService) {
+  public Checker(WebScraper scraper, IMailService mailService, long period, TimeUnit unit) {
     this.scraper = checkNotNull(scraper);
     this.mailService = checkNotNull(mailService);
+    this.period = checkNotNull(period);
+    this.unit = checkNotNull(unit);
   }
 
   private void check() {
@@ -35,7 +39,7 @@ public class Checker {
       }
     };
 
-    scheduler.scheduleAtFixedRate(checkRoutine, 0, 10, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(checkRoutine, 0, period, unit);
     logger.debug("check routine started");
   }
 }

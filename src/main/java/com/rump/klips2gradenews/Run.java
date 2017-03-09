@@ -1,6 +1,7 @@
 package com.rump.klips2gradenews;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -16,7 +17,7 @@ public class Run {
     if (line.isPresent()) {
       IMailService mailService = initMailService(line.get());
       WebScraper webScraper = initWebScraper(line.get());
-      Checker checker = new Checker(webScraper, mailService);
+      Checker checker = new Checker(webScraper, mailService, 10, TimeUnit.MINUTES);
       checker.start();
     }
   }
